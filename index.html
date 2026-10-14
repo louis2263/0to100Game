@@ -1,182 +1,1023 @@
-<!DOCTYPE html><html lang="zh-HK"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>方包包 V9.3 三人穩定</title>
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>方包包｜開口中 估數字遊戲</title>
 <style>
-*{box-sizing:border-box;font-family:'Noto Sans HK',sans-serif}
-body{margin:0;background:#000;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding-bottom:20px}
-.topBar{width:92%;max-width:420px;display:flex;justify-content:space-between;margin:8px 0 0}.ver{font-size:11px;color:#000;background:#FFEB00;padding:4px 12px;border-radius:99px;font-weight:900}
-.h1{font-size:20px;font-weight:900;margin:6px 0}.h1 b{background:linear-gradient(90deg,#FFEB00,#00FF88);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.tabs,.lvls{display:flex;gap:6px;width:92%;max-width:420px;margin:6px 0}.tab,.lvl{flex:1;padding:10px;border-radius:12px;border:2px solid #333;background:#111;color:#888;font-weight:900;font-size:12px}.tab.active{border-color:#FFEB00;color:#FFEB00;background:#FFEB0022}.lvl.active{border-color:#00FF88;color:#00FF88;background:#00FF8822}
-.pillRow{display:flex;gap:6px;justify-content:center;margin:6px 0;flex-wrap:wrap}.pill{background:#1a1a1a;border:1px solid #333;padding:5px 12px;border-radius:99px;font-size:12px}.pill b{color:#FFEB00}
-.flash{color:#FFEB00;font-weight:900;text-align:center;margin:8px 0;min-height:22px;font-size:18px}.timeT{color:#aaa;font-size:12px;text-align:center;min-height:16px}
-.cd{font-size:80px;font-weight:900;display:none;height:80px;line-height:80px;text-align:center;color:#fff;text-shadow:0 0 25px #FFEB00}.cd.show{display:block;animation:pop.3s ease}@keyframes pop{0%{transform:scale(.5)}100%{transform:scale(1)}}
-.board{display:grid;gap:12px;width:92%;max-width:420px;margin-top:10px}.c3{grid-template-columns:1fr}.c4{grid-template-columns:1fr 1fr}.c5{grid-template-columns:1fr 1fr}
-.light{height:80px;border-radius:20px;border:0;font-size:19px;font-weight:900;color:#fff;opacity:.35;pointer-events:none}.light.active{opacity:1;pointer-events:auto}.light.on{filter:brightness(1.9);box-shadow:0 0 28px currentColor;transform:scale(1.03)}
-.controls{display:flex;gap:8px;width:92%;max-width:420px;margin-top:14px}.btn{flex:1;padding:14px;border-radius:99px;border:0;font-weight:900;font-size:14px}.btnY{background:#FFEB00;color:#000}.btnG{background:#222;color:#fff}
-.box{width:92%;max-width:420px;background:#121212;border:1px solid #333;border-radius:16px;padding:12px;margin-top:10px}
-.nameI{width:100%;padding:12px;border-radius:12px;border:2px solid #333;background:#000;color:#fff;font-size:15px;font-weight:700}
-.code{font-size:30px;font-weight:900;letter-spacing:8px;color:#00FF88;text-align:center;margin:8px 0}
-.row{display:flex;justify-content:space-between;align-items:center;background:#000;padding:11px 12px;border-radius:12px;border:1px solid #222;margin-top:6px;font-size:13px}.row.me{border-color:#FFEB00;background:#1a1a00}.row.out{opacity:.4;text-decoration:line-through}
-#mainLB{width:92%;max-width:420px;margin-top:12px}
-body.inGame.tabs,body.inGame.lvls,body.inGame #roomSetup,body.inGame #roomInfo{opacity:.15;pointer-events:none} body.inGame.controls{opacity:.3}
-</style>
-</head><body>
-<div class="topBar"><div style="font-size:11px;color:#666">方包包遊戲</div><div class="ver">V9.3 三人穩定版</div></div>
-<div class="h1"><b>燈號對決</b></div>
-<div class="tabs"><button class="tab active" id="tabS" onclick="setTab('single')">單人</button><button class="tab" id="tabP" onclick="setTab('party')">本地多人</button><button class="tab" id="tabR" onclick="setTab('room')">淘汰賽房間</button></div>
-<div class="lvls"><button class="lvl active" id="lvl3" onclick="setMode(3)">3盞</button><button class="lvl" id="lvl4" onclick="setMode(4)">4盞</button><button class="lvl" id="lvl5" onclick="setMode(5)">5盞</button></div>
-<div class="pillRow"><div class="pill">關卡 <b id="level">0</b></div><div class="pill">生存 <b id="aliveCount">0</b></div><div class="pill">狀態 <b id="status">V9.3就緒</b></div></div>
-<div class="flash" id="flashText">V9.3 - 修復第3人加入</div>
-<div class="cd" id="cd">3</div><div class="timeT" id="timeText"></div>
-<div class="board c3" id="board"></div>
-<div id="mainLB"></div>
-<div class="controls"><button class="btn btnY" id="btnStart">▶️ 開始</button><button class="btn btnG" id="btnReset">↻ 重置</button></div>
+:root {
+    --primary: #ff0077;
+    --primary-dark: #d00060;
+    --secondary: #ffb703;
+    --blue-bg: #0072dd;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --text-main: #2b2d42;
+}
 
-<div class="box" id="roomBox" style="display:none">
-<div id="roomSetup">
-<div style="font-weight:900">💀 淘汰賽 - 支援5人+</div>
-<input id="nameInput" class="nameI" style="margin-top:10px" placeholder="你的名稱 (必填)" maxlength="10">
-<div style="display:flex;gap:6px;margin-top:10px"><button class="btn btnY" onclick="createRoom()">開新房間</button><button class="btn btnG" onclick="joinPrompt()">加入房間</button></div>
-<div id="joinLog" style="font-size:11px;color:#888;margin-top:6px;text-align:center"></div>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans HK", "Helvetica Neue", sans-serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    min-height: 100vh;
+    padding: 8px 10px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    transition: background 0.5s ease;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+/* 爆彈模式專屬背景 */
+body.mode-bomb {
+    background-color: #ff477e;
+    background-image: 
+        radial-gradient(circle at 50% 30%, #ff85a2 0%, #ff0055 70%),
+        radial-gradient(#ffffff 15%, transparent 16%),
+        radial-gradient(#ffffff 15%, transparent 16%);
+    background-size: 100% 100%, 30px 30px, 30px 30px;
+    background-position: 0 0, 0 0, 15px 15px;
+}
+
+/* 猜數字模式專屬背景 */
+body.mode-normal {
+    background-color: #f7d6e0;
+    background-image: 
+        radial-gradient(circle at 50% 20%, #ffefd5 0%, #f72585 90%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 15px, transparent 15px, transparent 30px);
+}
+
+/* 首次語音解鎖浮層 */
+.audio-start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(6px);
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+.start-box {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 20px;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    color: #2b2d42;
+    animation: pulse 1.5s infinite;
+}
+
+.start-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(180deg, #ff0077 0%, #d00060 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255,0,119,0.4);
+}
+
+header {
+    margin-bottom: 8px;
+    text-align: center;
+    width: 100%;
+    max-width: 380px;
+    z-index: 2;
+}
+
+h1 {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 900;
+    text-shadow: 2px 2px 0px #0044aa, 3px 3px 6px rgba(0,0,0,0.3);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* 頂部功能條 */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    gap: 6px;
+}
+
+.mode-selector {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 5px 8px;
+    border-radius: 16px;
+    border: 1.5px solid #fff;
+    background: rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    backdrop-filter: blur(4px);
+}
+
+.mode-btn.active {
+    background: #fff;
+    color: var(--primary-dark);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+.sound-toggle-btn {
+    background: #fff;
+    border: 1.5px solid #fff;
+    border-radius: 16px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary-dark);
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.wrapper {
+    width: 100%;
+    max-width: 380px;
+    z-index: 2;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 14px 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+}
+
+/* 數字區間顯示板 */
+.num-board {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    position: relative;
+}
+
+.num-tag {
+    flex: 1;
+    height: 64px;
+    background: linear-gradient(180deg, #60c6ff 0%, #0088ff 100%);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2), 0 4px 8px rgba(0,114,221,0.25);
+    border: 2px solid #ffffff;
+    transition: all 0.3s;
+}
+
+.num-tag .label {
+    font-size: 11px;
+    color: #ffffff;
+    font-weight: bold;
+    opacity: 0.9;
+}
+
+.num-tag .value {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 2px 2px 0px #003377;
+    line-height: 1;
+}
+
+/* 中間「至」與最終揭曉爆炸框 */
+.center-status-box {
+    width: 54px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 5;
+}
+
+.vs-icon {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--primary);
+    transition: all 0.3s ease;
+}
+
+/* 爆炸貼圖容器 */
+.explosion-result {
+    display: none;
+    position: absolute;
+    width: 100px;
+    height: 80px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    z-index: 10;
+}
+
+@keyframes popIn {
+    to { transform: translate(-50%, -50%) scale(1); }
+}
+
+.explosion-bg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.explosion-text-val {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 26px;
+    font-weight: 900;
+    color: #d60000;
+    text-shadow: 1.5px 1.5px 0px #fff, -1.5px -1.5px 0px #fff, 1.5px -1.5px 0px #fff, -1.5px 1.5px 0px #fff;
+    z-index: 2;
+    line-height: 1;
+}
+
+/* 視覺範圍條 */
+.visual-range-container {
+    margin: 4px 0 6px;
+}
+
+.range-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: bold;
+    color: #4a4e69;
+    margin-bottom: 3px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 9px;
+    background: #e9ecef;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, #ffb703, #ff0077);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* 訊息提示框 */
+.message {
+    margin: 4px 0 6px;
+    font-size: 15px;
+    font-weight: 800;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+/* 輸入框區域 */
+.input-section {
+    margin-bottom: 8px;
+}
+
+.input-display {
+    width: 100%;
+    height: 44px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    border: 2px solid #ffb732;
+    border-radius: 10px;
+    outline: none;
+    color: #003377;
+    background: #fffdf5;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.input-display:focus {
+    border-color: var(--primary);
+}
+
+/* 虛擬小鍵盤 */
+.numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.np-btn {
+    background: #f1f3f5;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 8px 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #2b2d42;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #ced4da;
+    transition: all 0.1s;
+}
+
+.np-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 #ced4da;
+    background: #e2e6ea;
+}
+
+.np-btn.delete {
+    background: #ffe3e3;
+    color: #e03131;
+    box-shadow: 0 2px 0 #ffc9c9;
+}
+
+.np-btn.clear {
+    background: #fff3bf;
+    color: #f59f00;
+    box-shadow: 0 2px 0 #ffec99;
+}
+
+/* 提交按鈕 */
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    font-size: 17px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #0088ff 0%, #0057aa 100%);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #003a73;
+    transition: all 0.1s;
+}
+
+.btn-submit:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #003a73;
+}
+
+/* 重開局按鈕 */
+.btn-reset {
+    width: 100%;
+    margin-top: 8px;
+    padding: 9px;
+    border: none;
+    border-radius: 10px;
+    background: #e63946;
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #b02a37;
+    transition: all 0.1s;
+}
+
+.btn-reset:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #b02a37;
+}
+
+/* 特效動畫 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.shake {
+    animation: shake 0.35s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 0.25s ease-in-out;
+}
+
+#canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 999;
+}
+</style>
+</head>
+<body class="mode-bomb">
+
+<!-- 首次解鎖語音與音效遮罩 -->
+<div class="audio-start-overlay" id="startOverlay">
+    <div class="start-box">
+        <h2 style="font-size: 20px; margin-bottom: 8px;">🍞 方包包 開口中 💣</h2>
+        <p style="font-size: 14px; color: #6c757d; line-height: 1.4;">點擊下方按鈕以啟用真人廣東話語音與震撼音效！</p>
+        <button class="start-btn" onclick="startWithAudio()">🔊 啟動語音並開始遊戲</button>
+    </div>
 </div>
-<div id="roomInfo" style="display:none"><div class="code" id="roomCode">----</div><div style="text-align:center;font-size:11px"><span id="roomLink" style="color:#00FF88;word-break:break-all"></span><br><button class="btn btnG" style="margin-top:6px;padding:8px 16px;font-size:12px" onclick="copyLink()">📋 複製Link</button></div></div>
-<div id="roomPlayers" style="margin-top:8px"></div>
-<div id="progress" style="text-align:center;margin-top:8px;font-size:12px;color:#888"></div>
+
+<canvas id="canvas"></canvas>
+
+<header>
+    <h1>🍞 方包包 開口中 💣</h1>
+    <div class="top-bar">
+        <div class="mode-selector">
+            <button class="mode-btn active" id="modeBomb" onclick="setGameMode('bomb')">💣 爆彈模式</button>
+            <button class="mode-btn" id="modeNormal" onclick="setGameMode('normal')">🎯 猜數字模式</button>
+        </div>
+        <button class="sound-toggle-btn" id="soundToggleBtn" onclick="toggleSound()">
+            🔊 聲音: 開
+        </button>
+    </div>
+</header>
+
+<div class="wrapper">
+    <div class="card" id="mainCard">
+        <!-- 數字區間顯示 -->
+        <div class="num-board">
+            <div class="num-tag" id="leftCard">
+                <span class="label">下限</span>
+                <span class="value" id="leftNum">0</span>
+            </div>
+            
+            <div class="center-status-box">
+                <span class="vs-icon" id="vsIcon">至</span>
+                
+                <div class="explosion-result" id="explosionResult">
+                    <svg class="explosion-bg" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 10,40 L 0,25 L 20,25 L 15,5 L 35,18 L 50,0 L 65,18 L 85,5 L 80,25 L 100,25 L 90,40 L 100,55 L 80,55 L 85,75 L 65,62 L 50,80 L 35,62 L 15,75 L 20,55 L 0,55 Z" fill="#ffca28" stroke="#d60000" stroke-width="3" stroke-linejoin="round"/>
+                        <path d="M 18,38 L 10,27 L 25,27 L 20,12 L 37,22 L 50,8 L 63,22 L 80,12 L 75,27 L 90,27 L 82,38 L 90,50 L 75,50 L 80,65 L 63,55 L 50,70 L 37,55 L 20,65 L 25,50 L 10,50 Z" fill="#ff9100"/>
+                    </svg>
+                    <span class="explosion-text-val" id="finalAnswerVal">50</span>
+                </div>
+            </div>
+
+            <div class="num-tag" id="rightCard">
+                <span class="label">上限</span>
+                <span class="value" id="rightNum">100</span>
+            </div>
+        </div>
+
+        <!-- 視覺縮小範圍條 -->
+        <div class="visual-range-container">
+            <div class="range-info">
+                <span>目前安全範圍</span>
+                <span id="rangeText">0 至 100</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-bar" id="progressBar" style="left: 0%; width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- 訊息提示區 -->
+        <div class="message" id="msgBox">請輸入數字開始遊戲！</div>
+
+        <!-- 輸入框 -->
+        <div class="input-section">
+            <input type="number" id="guessInput" class="input-display" placeholder="點擊輸入數字" readonly onclick="this.removeAttribute('readonly');">
+        </div>
+
+        <!-- 數字鍵盤 -->
+        <div class="numpad">
+            <button class="np-btn" onclick="pressNum(1)">1</button>
+            <button class="np-btn" onclick="pressNum(2)">2</button>
+            <button class="np-btn" onclick="pressNum(3)">3</button>
+            <button class="np-btn" onclick="pressNum(4)">4</button>
+            <button class="np-btn" onclick="pressNum(5)">5</button>
+            <button class="np-btn" onclick="pressNum(6)">6</button>
+            <button class="np-btn" onclick="pressNum(7)">7</button>
+            <button class="np-btn" onclick="pressNum(8)">8</button>
+            <button class="np-btn" onclick="pressNum(9)">9</button>
+            <button class="np-btn clear" onclick="pressClear()">C</button>
+            <button class="np-btn" onclick="pressNum(0)">0</button>
+            <button class="np-btn delete" onclick="pressDelete()">⌫</button>
+        </div>
+
+        <!-- 提交按鈕 -->
+        <button class="btn-submit" onclick="checkGuess()">提交估計 (ENTER)</button>
+
+        <!-- 重開局按鈕 -->
+        <button class="btn-reset" onclick="startNewGame()">🔄 重開新一回合</button>
+    </div>
 </div>
 
 <script>
-let playMode='single', mode=3, seq=[], player=[], level=0, playing=false, showing=false, startTime=0;
-let peer=null, connList=[], myConn=null, isHost=false, myName=localStorage.getItem('lampName')||'', myOut=false;
-let aliveList=[], outList=[], levelResults=[];
-const colors=[{bg:'#D00000',label:'🔴 紅',f:440},{bg:'#E6A700',label:'🟡 黃',f:550},{bg:'#00A835',label:'🟢 綠',f:660},{bg:'#0055D0',label:'🔵 藍',f:770},{bg:'#8A00C2',label:'🟣 紫',f:880}];
-const $=id=>document.getElementById(id);
-const PEER_CONFIG={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}};
-let audioCtx=null; const getCtx=()=>{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); return audioCtx; };
-function beep(f,d){ try{ const c=getCtx(),o=c.createOscillator(),g=c.createGain(); o.frequency.value=f; g.gain.value=0.35; o.connect(g); g.connect(c.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.01,c.currentTime+d); o.stop(c.currentTime+d);}catch{}}
-function setTab(m){ playMode=m; document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active')); $('tab'+(m==='single'?'S':m==='party'?'P':'R')).classList.add('active'); $('roomBox').style.display=m==='room'?'block':'none'; resetGame(); }
-function setMode(m){ mode=m; document.querySelectorAll('.lvl').forEach(b=>b.classList.remove('active')); $('lvl'+m).classList.add('active'); buildBoard(); if(isHost) broadcast({type:'mode',mode:m}); }
-function buildBoard(){ const b=$('board'); b.innerHTML=''; b.className='board c'+mode; for(let i=0;i<mode;i++){ let btn=document.createElement('button'); btn.className='light'; btn.id='light'+i; btn.style.background=colors[i].bg; btn.textContent=colors[i].label; btn.onclick=()=>handlePress(i); b.appendChild(btn);} setActive(false); }
-function setActive(o){ if(myOut){ document.querySelectorAll('.light').forEach(l=>l.classList.remove('active')); return; } document.querySelectorAll('.light').forEach(l=>{ if(o) l.classList.add('active'); else l.classList.remove('active'); }); }
-function lightOn(i){ let el=$('light'+i); if(!el) return; el.classList.add('on'); beep(colors[i].f,0.22); setTimeout(()=>el.classList.remove('on'),300); }
-async function doCountdown(){ $('flashText').style.display='none'; $('cd').style.display='block'; for(let c=3;c>=1;c--){ $('cd').textContent=c; $('cd').classList.remove('show'); void $('cd').offsetWidth; $('cd').classList.add('show'); beep(800,0.12); await new Promise(r=>setTimeout(r,700)); } $('cd').textContent='GO!'; beep(1200,0.35); await new Promise(r=>setTimeout(r,400)); $('cd').style.display='none'; $('flashText').style.display='block'; }
-function startTimer(){ startTime=performance.now(); $('timeText').textContent='⏱️ 計時中...'; }
-function stopTimer(){ let e=(performance.now()-startTime)/1000; return e; }
-async function showSequence(){ showing=true; setActive(false); $('flashText').textContent='第'+level+'關 - 睇 '+seq.length+' 盞'; for(let i=0;i<seq.length;i++){ await new Promise(r=>setTimeout(r,300)); lightOn(seq[i]); await new Promise(r=>setTimeout(r,600)); } showing=false; if(!myOut) setActive(true); else $('flashText').textContent='💀 觀戰中 - 剩'+aliveList.length+'人'; if(!myOut){ $('flashText').textContent='第'+level+'關 - 按 '+seq.length+' 盞'; startTimer(); player=[]; } }
-async function nextLevelHost(){ level++; $('level').textContent=level; seq.push(Math.floor(Math.random()*mode)); levelResults=[]; $('progress').textContent=''; broadcast({type:'seq',seq:seq,level:level,alive:aliveList}); await showSequence(); }
-function enterGameMode(){ document.body.classList.add('inGame'); }
-function exitGameMode(){ document.body.classList.remove('inGame'); }
-async function startGame(){
- getCtx(); let nameVal=$('nameInput').value.trim()||localStorage.getItem('lampName')||''; if(playMode==='room'&&!nameVal){ nameVal=prompt('輸入名稱：')||''; nameVal=nameVal.trim().slice(0,10); if(nameVal) $('nameInput').value=nameVal; } myName=nameVal||'玩家'; if(playMode==='room') localStorage.setItem('lampName',myName);
- if(playMode==='room' &&!peer){ alert('請先開房'); return; } if(playMode==='room' &&!isHost){ $('flashText').textContent='等房主開始...'; return; }
- if(playMode==='room' && connList.length===0){ alert('等朋友加入先，暫時得你1人'); return; }
- seq=[]; level=0; outList=[]; myOut=false; aliveList=connList.map(c=>c.playerName||'玩家').concat([myName]); $('aliveCount').textContent=aliveList.length; updateList();
- playing=true; enterGameMode(); if(isHost){ broadcast({type:'countdown',alive:aliveList}); await doCountdown(); await nextLevelHost(); } else { await doCountdown(); await nextLevelHost(); }
-}
-function handlePress(i){
- if(myOut) return; if(!playing||showing) return; lightOn(i); player.push(i); let idx=player.length-1;
- if(player[idx]!==seq[idx]){ myOut=true; $('flashText').textContent='💀 '+(myName||'你')+' 出局！'; beep(150,0.6); setActive(false); if(playMode==='room'){ sendResult(999,false,true); } else { exitGameMode(); setTimeout(()=>resetGame(),1500); } return; }
- if(player.length===seq.length){ let t=stopTimer(); if(playMode==='single'){ $('flashText').textContent='✅ 第'+level+'關 '+t.toFixed(2)+'s'; setTimeout(()=>nextLevelHost(),1000); } else { $('flashText').textContent='✅ 完成 - 等其他人'; sendResult(t,true,false); setActive(false); } }
-}
-function resetGame(){ seq=[]; player=[]; level=0; playing=false; showing=false; myOut=false; outList=[]; exitGameMode(); $('level').textContent=0; $('flashText').textContent='V9.3 三人穩定版就緒'; $('flashText').style.display='block'; $('timeText').textContent=''; $('cd').style.display='none'; setActive(false); $('progress').textContent=''; $('mainLB').innerHTML=''; }
+let minVal = 0;
+let maxVal = 100;
+let targetAnswer;
+let gameMode = 'bomb';
+let isGameOver = false;
+let soundEnabled = true;
+let isAudioUnlocked = false;
 
-function loadPeer(cb){ if(window.Peer) return cb(); let s=document.createElement('script'); s.src='https://unpkg.com/peerjs@1.5.3/dist/peerjs.min.js'; s.onload=cb; s.onerror=()=>{$('status').textContent='PeerJS載入失敗，試轉WiFi';}; document.head.appendChild(s); }
-function createRoom(){
- myName=$('nameInput').value.trim(); if(!myName){ alert('請先輸入名稱'); $('nameInput').focus(); return; } localStorage.setItem('lampName',myName);
- loadPeer(()=>{
-   let code=Math.random().toString(36).substring(2,6).toUpperCase();
-   let pid='lamp-'+code+'-'+Date.now().toString(36).slice(-3); // 唔撞ID
-   isHost=true; connList=[]; outList=[]; if(peer) peer.destroy();
-   peer=new Peer(pid, PEER_CONFIG);
-   $('status').textContent='開房中...'; $('joinLog').textContent='開房碼: '+code+' 等緊朋友...';
-   peer.on('open',()=>{ $('status').textContent='房主 '+code+' ('+(connList.length+1)+'人)'; $('roomCode').textContent=code; $('roomInfo').style.display='block'; let link=location.origin+location.pathname+'?room='+code; $('roomLink').textContent=link; history.replaceState(null,'','?room='+code); aliveList=[myName]; updateList(); });
-   peer.on('connection',c=>{
-     console.log('新玩家連入',c.peer);
-     connList.push(c);
-     c.on('open',()=>{
-       $('status').textContent='房主 '+code+' ('+(connList.length+1)+'人) ✅';
-       c.send({type:'mode',mode:mode});
-       c.send({type:'welcome',host:myName});
-       updateList();
-     });
-     c.on('data',d=>handleData(d,c));
-     c.on('close',()=>{ connList=connList.filter(x=>x!==c); aliveList=aliveList.filter(n=>n!==c.playerName); updateList(); });
-     c.on('error',e=>{ $('joinLog').textContent='連線錯誤: '+e; });
-   });
-   peer.on('error',e=>{ $('joinLog').textContent='開房錯誤: '+e.type; if(e.type==='unavailable-id'){ createRoom(); } });
- });
-}
-function joinPrompt(){ myName=$('nameInput').value.trim(); if(!myName){ alert('請輸入名稱'); return; } localStorage.setItem('lampName',myName); let c=prompt('輸入4位房間碼:'); if(!c) return; joinRoom(c.toUpperCase().trim()); }
+const leftDom = document.getElementById("leftNum");
+const rightDom = document.getElementById("rightNum");
+const rangeDom = document.getElementById("rangeText");
+const inputDom = document.getElementById("guessInput");
+const msgDom = document.getElementById("msgBox");
+const progressBar = document.getElementById("progressBar");
+const mainCard = document.getElementById("mainCard");
+const soundToggleBtn = document.getElementById("soundToggleBtn");
+const vsIcon = document.getElementById("vsIcon");
+const explosionResult = document.getElementById("explosionResult");
+const finalAnswerVal = document.getElementById("finalAnswerVal");
+const startOverlay = document.getElementById("startOverlay");
 
-function joinRoom(code, attempt=1){
- loadPeer(()=>{
-   if(peer) peer.destroy();
-   peer=new Peer(PEER_CONFIG);
-   $('status').textContent='連線中 '+code+' (第'+attempt+'次)...'; $('joinLog').textContent='嘗試連接 '+code+'...';
-   let timeout=setTimeout(()=>{ if(!myConn||!myConn.open){ $('joinLog').textContent='連線超時，試緊重連...'; if(attempt<3) joinRoom(code, attempt+1); } },4000);
-   peer.on('open',()=>{
-     // 嘗試連所有可能的 host ID (舊版 lamp-CODE 同新版 lamp-CODE-xxx)
-     let connTried=false;
-     const tryConnect = (hostId)=>{
-       if(connTried) return;
-       let conn=peer.connect(hostId, {reliable:true,...PEER_CONFIG});
-       conn.on('open',()=>{
-         clearTimeout(timeout); connTried=true; myConn=conn;
-         $('status').textContent='已連 '+code+' ✅'; $('roomCode').textContent=code; $('roomInfo').style.display='block'; $('roomLink').textContent=location.href;
-         $('joinLog').textContent='已連接房主 '+myName; conn.send({type:'join',name:myName});
-       });
-       conn.on('data',d=>handleData(d));
-       conn.on('error',()=>{});
-       setTimeout(()=>{ if(!conn.open &&!connTried){ conn.close(); } },2500);
-       return conn;
-     };
-     // 先試新格式的前綴掃描，實際上PeerJS需要精確ID，所以我們用list+discovery
-     // 技巧：先試直接 lamp-CODE (舊房)，如果失敗，房主會在3秒內用 broadcast，所以我們改為用 peer.listAllPeers (如果可用) 否則直接試 lamp-CODE
-     let direct=tryConnect('lamp-'+code);
-     // 後備：1秒後如果未連上，再試用 discovery - 房主其實ID係 lamp-CODE-xxx，所以要靠房主主動接受? 簡化：叫房主開房後，將完整ID寫入 localStorage 並分享? 今次我哋用靈活接法：房主同時 listen 2個ID
-     // 為兼容，我哋讓房主額外連一個固定ID
-     setTimeout(()=>{ if(!connTried){ $('joinLog').textContent='搵緊房間 '+code+'...'; // 再試一次
-       let second=tryConnect('lamp-'+code+'-host'); // 舊邏輯兼容
-     }},1500);
-   });
-   peer.on('error',e=>{
-     $('joinLog').textContent='加入失敗: '+e.type;
-     if(e.type==='peer-unavailable' && attempt<3){ setTimeout(()=>joinRoom(code, attempt+1),1000); }
-   });
- });
+/* ================= 廣東話強效零延遲 TTS 語音系統 ================= */
+window.speechQueue = [];
+let cantoneseVoice = null;
+
+function loadCantoneseVoices() {
+    if ('speechSynthesis' in window) {
+        const voices = window.speechSynthesis.getVoices();
+        cantoneseVoice = voices.find(v => v.lang === 'zh-HK' || v.lang === 'yue-Hant-HK') ||
+                         voices.find(v => v.lang.includes('zh-TW') || v.lang.includes('zh'));
+    }
 }
 
-async function handleData(data,conn){
- if(!data) return;
- if(data.type==='mode'){ mode=data.mode; buildBoard(); }
- if(data.type==='welcome'){ $('joinLog').textContent='房主: '+data.host+'，等開始'; }
- if(data.type==='countdown'){ aliveList=data.alive||aliveList; $('aliveCount').textContent=aliveList.length; playing=true; myOut=outList.includes(myName); enterGameMode(); await doCountdown(); }
- if(data.type==='seq'){ seq=data.seq; level=data.level; aliveList=data.alive||aliveList; $('level').textContent=level; $('aliveCount').textContent=aliveList.length; playing=true; enterGameMode(); await showSequence(); }
- if(data.type==='join' && isHost){ if(conn){ conn.playerName=data.name; console.log('加入',data.name); } aliveList=connList.map(c=>c.playerName||'玩家').concat([myName]); $('status').textContent='房主 '+(connList.length+1)+'人 ✅'; updateList(); }
- if(data.type==='result'){
-   if(data.isOut){ outList.push(data.name); aliveList=aliveList.filter(n=>n!==data.name); $('aliveCount').textContent=aliveList.length; $('progress').textContent='💀 '+data.name+' 出局！剩'+aliveList.length+'人'; renderBoard(); if(isHost){ broadcast({type:'out',name:data.name,alive:aliveList}); if(aliveList.length===1){ broadcast({type:'win',winner:aliveList[0]}); $('flashText').innerHTML='🏆 '+aliveList[0]+' 勝出！'; setTimeout(()=>exitGameMode(),1200); return; } checkAllDone(); } }
-   else { levelResults.push({name:data.name,time:data.time}); $('progress').textContent='✅ '+levelResults.length+'/'+aliveList.length+' 完成'; renderBoard(); if(isHost) checkAllDone(); }
- }
- if(data.type==='out'){ if(!outList.includes(data.name)) outList.push(data.name); aliveList=data.alive; $('aliveCount').textContent=aliveList.length; $('progress').textContent='💀 '+data.name+' 出局！'; updateList(); renderBoard(); if(myName===data.name){ myOut=true; setActive(false); $('flashText').textContent='💀 你已出局'; } }
- if(data.type==='win'){ $('flashText').innerHTML='🏆 '+data.winner+' 勝出！'; $('timeText').textContent=data.winner===myName?'你贏咗！':'遊戲結束'; playing=false; setTimeout(()=>exitGameMode(),1500); }
- if(data.type==='board'){ $('mainLB').innerHTML=data.html; }
- if(data.type==='plist'){ $('roomPlayers').innerHTML=data.html; $('aliveCount').textContent=data.aliveLen||0; }
- if(data.type==='prog'){ $('progress').textContent=data.text; if(data.board) $('mainLB').innerHTML=data.board; if(data.flash) $('flashText').innerHTML=data.flash; }
+if ('speechSynthesis' in window) {
+    loadCantoneseVoices();
+    window.speechSynthesis.onvoiceschanged = loadCantoneseVoices;
 }
-function checkAllDone(){ if(levelResults.length>=aliveList.length){ broadcast({type:'nextIn',level:level+1}); let sec=3; $('flashText').textContent='剩'+aliveList.length+'人！'+sec+'秒後第'+(level+1)+'關...'; let t=setInterval(()=>{ sec--; if(sec>0){ $('flashText').textContent='剩'+aliveList.length+'人！'+sec+'秒後第'+(level+1)+'關...'; broadcast({type:'prog',text:$('progress').textContent,board:$('mainLB').innerHTML,flash:$('flashText').textContent}); } else clearInterval(t); },1000); setTimeout(async()=>{ broadcast({type:'countdown',alive:aliveList}); await doCountdown(); await nextLevelHost(); },3000); } }
-function sendResult(t,ok,isOut){ let p={type:'result',name:myName,time:t,ok:ok,isOut:isOut}; if(isHost){ handleData(p,null); } else if(myConn && myConn.open){ myConn.send(p); } }
-function broadcast(o){ connList.forEach(c=>{ try{ if(c.open) c.send(o);}catch{}}); }
-function renderBoard(){
- let h='<div style=text-align:center;font-weight:900;margin-top:4px>🏆 第'+level+'關 - 生存'+aliveList.length+'人</div>';
- let sorted=[...levelResults].sort((a,b)=>a.time-b.time);
- sorted.forEach((r,i)=>{ let ic=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.'; let me=r.name===myName; h+='<div class="row '+(me?'me':'')+'"><span>'+ic+' '+r.name+(me?' (你)':'')+'</span><span style=color:#0f8;font-weight:900>'+r.time.toFixed(2)+'s</span></div>'; });
- outList.forEach(n=>{ h+='<div class="row out"><span>💀 '+n+' (出局)</span></div>'; });
- $('mainLB').innerHTML=h; broadcast({type:'board',html:h});
+
+function speakText(text) {
+    if (!soundEnabled || !('speechSynthesis' in window)) return;
+
+    try {
+        window.speechSynthesis.resume();
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        if (!cantoneseVoice) loadCantoneseVoices();
+        if (cantoneseVoice) utterance.voice = cantoneseVoice;
+
+        utterance.lang = 'zh-HK';
+        utterance.rate = 1.05;
+        utterance.pitch = 1.0;
+
+        // 全域陣列鎖定以防止被 Safari/Android GC 自動回收停頓
+        window.speechQueue.push(utterance);
+        utterance.onend = utterance.onerror = () => {
+            const idx = window.speechQueue.indexOf(utterance);
+            if (idx > -1) window.speechQueue.splice(idx, 1);
+        };
+
+        setTimeout(() => {
+            window.speechSynthesis.speak(utterance);
+        }, 30);
+    } catch (e) {
+        console.error("Speech error:", e);
+    }
 }
-function updateList(){ let html='<div class=row>👥 生存'+aliveList.length+'人: '+aliveList.join(', ')+'</div>'; if(outList.length) html+='<div class=row out>💀 出局: '+outList.join(', ')+'</div>'; $('roomPlayers').innerHTML=html; $('aliveCount').textContent=aliveList.length; if(isHost) broadcast({type:'plist',html:html,aliveLen:aliveList.length}); }
-function copyLink(){ navigator.clipboard.writeText($('roomLink').textContent).then(()=>alert('已複製Link')); }
-function checkUrl(){ let p=new URLSearchParams(location.search).get('room'); if(p){ setTab('room'); setTimeout(()=>{ let s=localStorage.getItem('lampName'); if(s) $('nameInput').value=s; if($('nameInput').value.trim()) joinRoom(p.toUpperCase()); },500); } }
-$('btnStart').addEventListener('click', startGame);
-$('btnReset').addEventListener('click', ()=>{ exitGameMode(); resetGame(); });
-$('nameInput').addEventListener('input',()=>{ if($('nameInput').value.trim()) localStorage.setItem('lampName',$('nameInput').value.trim()); });
-if(myName) $('nameInput').value=myName;
-setMode(3); buildBoard(); checkUrl();
-</script></body></html>
+
+/* ================= Web Audio API 音效系統 ================= */
+let audioCtx = null;
+
+function getAudioContext() {
+    if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+        }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    return audioCtx;
+}
+
+// 點擊解鎖按鈕觸發授權
+function startWithAudio() {
+    getAudioContext();
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.resume();
+        const dummy = new SpeechSynthesisUtterance('');
+        dummy.volume = 0.01;
+        dummy.lang = 'zh-HK';
+        window.speechSynthesis.speak(dummy);
+    }
+    isAudioUnlocked = true;
+    startOverlay.style.display = 'none';
+
+    // 啟動後即刻朗讀「零 到 一百」
+    speakText(`${minVal} 到 ${maxVal}`);
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    soundToggleBtn.innerHTML = soundEnabled ? "🔊 聲音: 開" : "🔇 聲音: 關";
+    if (!soundEnabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+}
+
+function playSoundClick() {
+    if (!soundEnabled) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.05);
+
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.05);
+}
+
+function playSoundUp() {
+    if (!soundEnabled) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(350, now);
+    osc.frequency.exponentialRampToValueAtTime(700, now + 0.2);
+
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(now + 0.25);
+}
+
+function playSoundDown() {
+    if (!soundEnabled) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(650, now);
+    osc.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(now + 0.25);
+}
+
+function playSoundError() {
+    if (!soundEnabled) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.setValueAtTime(120, now + 0.1);
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(now + 0.25);
+}
+
+function playSoundExplosion() {
+    if (!soundEnabled) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const bufferSize = ctx.sampleRate * 0.5;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(800, ctx.currentTime);
+    filter.frequency.linearRampToValueAtTime(50, ctx.currentTime + 0.5);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start();
+    noise.stop(ctx.currentTime + 0.5);
+}
+
+function playSoundWin() {
+    if (!soundEnabled) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + idx * 0.1 + 0.25);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(ctx.currentTime + idx * 0.1);
+        osc.stop(ctx.currentTime + idx * 0.1 + 0.25);
+    });
+}
+
+/* ================= 遊戲主邏輯 ================= */
+
+function setGameMode(mode) {
+    gameMode = mode;
+    document.getElementById("modeBomb").classList.toggle("active", mode === 'bomb');
+    document.getElementById("modeNormal").classList.toggle("active", mode === 'normal');
+    
+    if (mode === 'bomb') {
+        document.body.className = "mode-bomb";
+    } else {
+        document.body.className = "mode-normal";
+    }
+
+    playSoundClick();
+    startNewGame();
+}
+
+function startNewGame() {
+    minVal = 0;
+    maxVal = 100;
+    targetAnswer = Math.floor(Math.random() * 99) + 1;
+    isGameOver = false;
+    
+    vsIcon.style.display = "inline-block";
+    explosionResult.style.display = "none";
+
+    refreshUi();
+    msgDom.textContent = gameMode === 'bomb' ? "💣 炸彈已暗中設定！小心唔好中！" : "🎯 猜中目標數字即可獲勝！";
+    msgDom.style.color = "#2b2d42";
+    inputDom.value = "";
+
+    if (isAudioUnlocked) {
+        speakText(`${minVal} 到 ${maxVal}`);
+    }
+}
+
+function refreshUi() {
+    leftDom.textContent = minVal;
+    rightDom.textContent = maxVal;
+    rangeDom.textContent = `${minVal} 至 ${maxVal}`;
+    
+    const leftPercent = minVal;
+    const widthPercent = maxVal - minVal;
+    progressBar.style.left = leftPercent + "%";
+    progressBar.style.width = widthPercent + "%";
+}
+
+function pressNum(num) {
+    if (isGameOver) return;
+    if (inputDom.value.length < 3) {
+        inputDom.value += num;
+        playSoundClick();
+    }
+}
+
+function pressClear() {
+    if (isGameOver) return;
+    inputDom.value = "";
+    playSoundClick();
+}
+
+function pressDelete() {
+    if (isGameOver) return;
+    inputDom.value = inputDom.value.slice(0, -1);
+    playSoundClick();
+}
+
+inputDom.addEventListener("keyup", function(event) {
+    if (event.key === "Enter") {
+        checkGuess();
+    }
+});
+
+function checkGuess() {
+    if (isGameOver) {
+        msgDom.textContent = "請按「重開新一回合」繼續！";
+        msgDom.style.color = "#8d99ae";
+        playSoundError();
+        return;
+    }
+
+    const guess = parseInt(inputDom.value, 10);
+
+    if (isNaN(guess)) {
+        msgDom.textContent = "⚠️ 請輸入有效嘅數字！";
+        msgDom.style.color = "#e03131";
+        triggerAnimation('shake');
+        playSoundError();
+        speakText("請輸入數字");
+        return;
+    }
+
+    if (guess <= minVal || guess >= maxVal) {
+        msgDom.textContent = `⚠️ 請輸入 ${minVal} 至 ${maxVal} 之間嘅數字！`;
+        msgDom.style.color = "#e03131";
+        triggerAnimation('shake');
+        playSoundError();
+        speakText(`請輸入 ${minVal} 到 ${maxVal} 之間`);
+        return;
+    }
+
+    if (guess < targetAnswer) {
+        minVal = guess;
+        msgDom.textContent = `⬆️ 大過 ${guess}！安全範圍縮小！`;
+        msgDom.style.color = "#2b8a3e";
+        playSoundUp();
+        triggerAnimation('pulse');
+        speakText(`${minVal} 到 ${maxVal}`);
+    } else if (guess > targetAnswer) {
+        maxVal = guess;
+        msgDom.textContent = `⬇️ 細過 ${guess}！安全範圍縮小！`;
+        msgDom.style.color = "#1c7ed6";
+        playSoundDown();
+        triggerAnimation('pulse');
+        speakText(`${minVal} 到 ${maxVal}`);
+    } else {
+        isGameOver = true;
+        
+        vsIcon.style.display = "none";
+        explosionResult.style.display = "block";
+        finalAnswerVal.textContent = targetAnswer;
+
+        if (gameMode === 'bomb') {
+            msgDom.textContent = `💥 BOOM！開口中爆彈！答案就係 ${targetAnswer}！`;
+            msgDom.style.color = "#d6336c";
+            playSoundExplosion();
+            triggerAnimation('shake');
+            fireConfetti('#ff0055');
+            speakText(`爆！開口中！答案係 ${targetAnswer}`);
+        } else {
+            msgDom.textContent = `🎉 恭喜估中！目標數字就係 ${targetAnswer}！`;
+            msgDom.style.color = "#d6336c";
+            playSoundWin();
+            fireConfetti('#00cc66');
+            speakText(`恭喜估中！答案係 ${targetAnswer}`);
+        }
+    }
+
+    refreshUi();
+    inputDom.value = "";
+}
+
+function triggerAnimation(className) {
+    mainCard.classList.remove('shake', 'pulse');
+    void mainCard.offsetWidth;
+    mainCard.classList.add(className);
+}
+
+/* ================= 爆發特效 Canvas ================= */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function fireConfetti(primaryColor) {
+    particles = [];
+    const count = 90;
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 18,
+            vy: (Math.random() - 0.5) * 18 - 3,
+            size: Math.random() * 8 + 4,
+            color: [primaryColor, '#ffb703', '#0072dd', '#ffffff', '#ff5288'][Math.floor(Math.random() * 5)],
+            life: 100
+        });
+    }
+    requestAnimationFrame(updateConfetti);
+}
+
+function updateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2;
+        p.life -= 1.5;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life / 100);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (p.life <= 0) {
+            particles.splice(index, 1);
+        }
+    });
+
+    if (particles.length > 0) {
+        requestAnimationFrame(updateConfetti);
+    }
+}
+
+startNewGame();
+</script>
+</body>
+</html>
